@@ -16,9 +16,12 @@
     "@mantine/modals": "^7.16.3",
     "@tailwindcss/vite": "^4.0.6",
     "@types/react-router-dom": "^5.3.3",
+    "easymde": "^2.19.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-router-dom": "^7.1.5"
+    "react-router-dom": "^7.1.5",
+    "react-simplemde-editor": "^5.2.0",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.19.0",
