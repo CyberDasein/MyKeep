@@ -1,11 +1,14 @@
 import { useState, useEffect, useCallback } from "react";
 
-type UseLocalStorage<T> = (key: string, initialValue: T) => [
-  T,
-  { setItem: (value: T) => void; removeItem: () => void }
-];
+type UseLocalStorage<T> = (
+  key: string,
+  initialValue: T
+) => [T, { setItem: (value: T) => void; removeItem: () => void }];
 
-export default function useLocalStorage<T>(key: string, initialValue: T): ReturnType<UseLocalStorage<T>> {
+export default function useLocalStorage<T>(
+  key: string,
+  initialValue: T
+): ReturnType<UseLocalStorage<T>> {
   const [value, setValue] = useState<T>(() => {
     try {
       const storedValue = localStorage.getItem(key);

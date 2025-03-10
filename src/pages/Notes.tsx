@@ -1,26 +1,29 @@
-import { Link } from "react-router-dom";
-import { useAuth } from "../context/AuthProvider";
-import { useCallback, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import useLocalStorage from "../hooks/useLocalStorage";
 import Sidebar from "../components/Sidebar";
-import NoteView from "../components/NoteView";
-import { AppShell, Group, Text, Image, Button, Input, Textarea } from "@mantine/core";
+import NoteDetail from "../components/NoteDetail";
+import { AppShell, Text, Button, SimpleGrid, Card } from "@mantine/core";
 import { NoteType } from "../types";
-import logo from "../assets/react.svg";
+import { Header } from "../components/Header";
 
 export default function Notes() {
-  const auth = useAuth();
-  const logout = () => {
-    auth.signout();
-  };
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const noteIdFromHash = location.hash.replace("#", "");
+    if (noteIdFromHash) {
+      setSelectedNoteId(noteIdFromHash);
+    }
+  }, [location.hash]);
 
   const [notes, { setItem: setNotes }] = useLocalStorage<NoteType[]>("notes", [
-    { id: uuidv4(), content: "test", title: `Заметка № 1}` },
+    { id: uuidv4(), content: "Первая заметка", title: `Заметка № 1}` },
   ]);
+
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-
 
   const filteredNotes = notes.filter((note) =>
     note.content.toLowerCase().includes(searchQuery.toLowerCase())
@@ -51,27 +54,7 @@ export default function Notes() {
       padding="md"
     >
       <AppShell.Header>
-        <Group justify="space-between" px="md" style={{ height: "100%" }}>
-          <Group>
-            <Image src={logo} width={50} height={50} alt="Логотип" />
-            <Text size="lg">Мои заметки</Text>
-          </Group>
-          <Group>
-            {auth.user && (
-              <>
-                <span className="font-bold">{auth.user.name}</span>
-                <a href="#" onClick={logout} className="hover:text-[#ff9800]">
-                  Logout
-                </a>
-              </>
-            )}
-            {!auth.user && (
-              <Link to="/login" className="hover:text-[#ff9800]">
-                Login
-              </Link>
-            )}
-          </Group>
-        </Group>
+        <Header />
       </AppShell.Header>
       <AppShell.Navbar>
         <Sidebar
@@ -84,15 +67,42 @@ export default function Notes() {
         />
       </AppShell.Navbar>
 
-      <AppShell.Main >
-        {selectedNote && (
-          <NoteView
+      <AppShell.Main>
+        {selectedNote ? (
+          <NoteDetail
             note={selectedNote}
             onEdit={editNote}
             onDelete={() => removeNote(selectedNote.id)}
+            setSelectedNoteId={setSelectedNoteId}
           />
+        ) : (
+          <SimpleGrid cols={3} spacing="md">
+            {notes.map((note) => (
+              <Card
+                key={note.id}
+                shadow="sm"
+                padding="lg"
+                radius="md"
+                withBorder
+              >
+                <Text fw={500} truncate>
+                  {note.title}
+                </Text>
+                <Text size="sm" lineClamp={2}>
+                  {note.content}
+                </Text>
+                <Button
+                  mt="md"
+                  fullWidth
+                  variant="light"
+                  onClick={() => navigate(`#${note.id}`)}
+                >
+                  Открыть
+                </Button>
+              </Card>
+            ))}
+          </SimpleGrid>
         )}
-         
       </AppShell.Main>
     </AppShell>
   );

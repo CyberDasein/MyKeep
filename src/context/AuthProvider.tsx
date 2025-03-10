@@ -1,17 +1,11 @@
 import { createContext, useContext, useState, ReactNode } from "react";
-
-type User = {
-  name: string;
-  password?: string;
-};
-
-type AuthContextType = {
-  user: User | null;
-  signin: (newUser: User, callback: VoidFunction) => void;
-  signout: VoidFunction;
-};
+import { AuthContextType, User } from "../types";
 
 const AuthContext = createContext<AuthContextType | null>(null);
+
+type AuthProviderProps = {
+  children: ReactNode;
+};
 
 export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);
@@ -20,10 +14,6 @@ export function useAuth(): AuthContextType {
   }
   return context;
 }
-
-type AuthProviderProps = {
-  children: ReactNode;
-};
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(() => {

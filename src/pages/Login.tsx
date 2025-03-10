@@ -1,23 +1,23 @@
 import { useState } from "react";
-import { Input, Button, Text } from '@mantine/core';
+import { Input, Button, Text } from "@mantine/core";
 import { useAuth } from "../context/AuthProvider";
 import { useNavigate, useLocation } from "react-router-dom";
 
 export const Login = () => {
-  const auth = useAuth()
-  const navigate = useNavigate()
-  const location = useLocation()
+  const auth = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  const from = location.state?.from || "/"
+  const from = location.state?.from || "/";
 
   const [formData, setFormData] = useState({
     password: "",
-    name: "alexey"
+    name: "alexey",
   });
 
   const [errors, setErrors] = useState({
     name: "",
-    password: ""
+    password: "",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

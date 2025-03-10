@@ -13,7 +13,14 @@ function App() {
         <Router>
           <Routes>
             <Route path="/login" element={<Login />} />
-            <Route path="/" element={<PrivateRoute><Notes /></PrivateRoute>} />
+            <Route
+              path="/"
+              element={
+                <PrivateRoute>
+                  <Notes />
+                </PrivateRoute>
+              }
+            />
           </Routes>
         </Router>
       </MantineProvider>
