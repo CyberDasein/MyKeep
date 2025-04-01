@@ -4,8 +4,8 @@ export type NoteType = {
   title: string;
 };
 export type NoteDetailProps = {
-  note: { id: string; content: string };
-  onEdit: (content: string) => void;
+  note: NoteType;
+  onEdit: (note: NoteType) => void;
   onDelete: () => void;
   setSelectedNoteId: (id: string | null) => void;
 };

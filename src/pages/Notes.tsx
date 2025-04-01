@@ -7,6 +7,11 @@ import NoteDetail from "../components/NoteDetail";
 import { AppShell, Text, Button, SimpleGrid, Card } from "@mantine/core";
 import { NoteType } from "../types";
 import { Header } from "../components/Header";
+import {
+  useDeleteNote,
+  useNotes,
+  useUpdateNote,
+} from "../hooks/firebaseHooks";
 
 export default function Notes() {
   const navigate = useNavigate();
@@ -18,29 +23,20 @@ export default function Notes() {
     }
   }, [location.hash]);
 
-  const [notes, { setItem: setNotes }] = useLocalStorage<NoteType[]>("notes", [
-    { id: uuidv4(), content: "Первая заметка", title: `Заметка № 1}` },
-  ]);
+  const { data: notes, isLoading, error } = useNotes();
+  const { mutate: updateNote } = useUpdateNote();
+  const { mutate: deleteNote } = useDeleteNote();
 
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const filteredNotes = notes.filter((note) =>
+  const filteredNotes = notes?.filter((note) =>
     note.content.toLowerCase().includes(searchQuery.toLowerCase())
   );
-  const selectedNote = notes.find((note) => note.id === selectedNoteId);
-
-  const editNote = (value: string) => {
-    if (selectedNote) {
-      const updatedNotes = notes.map((note) =>
-        note.id === selectedNote.id ? { ...note, content: value } : note
-      );
-      setNotes(updatedNotes);
-    }
-  };
+  const selectedNote = notes?.find((note) => note.id === selectedNoteId);
 
   const removeNote = (id: string) => {
-    setNotes(notes.filter((note) => note.id !== id));
+    deleteNote(id);
     setSelectedNoteId(null);
   };
 
@@ -62,7 +58,7 @@ export default function Notes() {
           onSelect={setSelectedNoteId}
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
-          setNotes={setNotes}
+          setNotes={useNotes}
           selectedNote={selectedNote}
         />
       </AppShell.Navbar>
@@ -71,36 +67,41 @@ export default function Notes() {
         {selectedNote ? (
           <NoteDetail
             note={selectedNote}
-            onEdit={editNote}
+            onEdit={updateNote}
             onDelete={() => removeNote(selectedNote.id)}
             setSelectedNoteId={setSelectedNoteId}
           />
         ) : (
           <SimpleGrid cols={3} spacing="md">
-            {notes.map((note) => (
-              <Card
-                key={note.id}
-                shadow="sm"
-                padding="lg"
-                radius="md"
-                withBorder
-              >
-                <Text fw={500} truncate>
-                  {note.title}
-                </Text>
-                <Text size="sm" lineClamp={2}>
-                  {note.content}
-                </Text>
-                <Button
-                  mt="md"
-                  fullWidth
-                  variant="light"
-                  onClick={() => navigate(`#${note.id}`)}
+            {isLoading ? (
+              <span>Загрузка заметок...</span>
+            ) : (
+              notes &&
+              notes.map((note) => (
+                <Card
+                  key={note.id}
+                  shadow="sm"
+                  padding="lg"
+                  radius="md"
+                  withBorder
                 >
-                  Открыть
-                </Button>
-              </Card>
-            ))}
+                  <Text fw={500} truncate>
+                    {note.title}
+                  </Text>
+                  <Text size="sm" lineClamp={2}>
+                    {note.content}
+                  </Text>
+                  <Button
+                    mt="md"
+                    fullWidth
+                    variant="light"
+                    onClick={() => navigate(`#${note.id}`)}
+                  >
+                    Открыть
+                  </Button>
+                </Card>
+              ))
+            )}
           </SimpleGrid>
         )}
       </AppShell.Main>
