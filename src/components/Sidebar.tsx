@@ -1,17 +1,15 @@
+import { useMemo } from "react";
 import {
   NavLink,
   TextInput,
   Text,
   Stack,
   ScrollArea,
-  Group,
-  Input,
-  Button,
+  Center,
+  Title,
 } from "@mantine/core";
 import { NoteType } from "../types";
-import { v4 as uuidv4 } from "uuid";
-import { useState } from "react";
-import { useAddNote } from "../hooks/firebaseHooks";
+
 
 type SidebarProps = {
   notes: NoteType[] | undefined;
@@ -29,58 +27,39 @@ export default function Sidebar({
   setSearchQuery,
   selectedNote,
 }: SidebarProps) {
-  const [title, setTitle] = useState<string>("");
 
-  const handleAddNote = () => {
-    if(!title) {
-      return
-    }
-    const newNote: NoteType = {
-      id: uuidv4(),
-      title: title,
-      content: "", 
-    };
-    addNote(newNote); 
-    setTitle(""); 
-  };
-
-  const { mutate: addNote } = useAddNote();
   return (
     <Stack p="md">
       <TextInput
-        placeholder="Поиск..."
+        placeholder="Поиск заметок..."
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
+        aria-label="Поиск заметок"
       />
 
       <ScrollArea>
-        {notes &&
+        <Title style={{ textAlign: "left" }} mb="md" size="h5">
+          Список заметок
+        </Title>
+        {notes && notes.length > 0 ? (
           notes.map((note) => (
             <NavLink
               color="lime.4"
               key={note.id}
               onClick={() => onSelect(note.id)}
               active={selectedNote && selectedNote.id === note.id}
-              variant="filled"
-              autoContrast
-              label={
-                <Text lineClamp={1}>{note.title}</Text> // Добавляем обрезку
-              }
+              variant="subtle"
+              label={<Text lineClamp={1}>{note.title}</Text>}
             >
               <Text lineClamp={1}>{note.content}</Text>
             </NavLink>
-          ))}
+          ))
+        ) : (
+          <Center>
+            <Text color="dimmed">Нет заметок</Text>
+          </Center>
+        )}
       </ScrollArea>
-
-      <Group>
-        <Input
-          size="md"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Введите название"
-        />
-        <Button onClick={handleAddNote}>Создать заметку</Button>
-      </Group>
     </Stack>
   );
 }

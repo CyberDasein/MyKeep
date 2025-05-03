@@ -5,6 +5,7 @@ import "./App.css";
 import { MantineProvider } from "@mantine/core";
 import { AuthProvider } from "./context/AuthProvider";
 import { PrivateRoute } from "./components/PrivateRoute";
+import { RegisterForm } from "./pages/Registration";
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
         <Router>
           <Routes>
             <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<RegisterForm />} />
             <Route
               path="/"
               element={

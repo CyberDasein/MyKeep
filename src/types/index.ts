@@ -2,6 +2,7 @@ export type NoteType = {
   id: string;
   content: string;
   title: string;
+  order?: number;
 };
 export type NoteDetailProps = {
   note: NoteType;
@@ -10,11 +11,22 @@ export type NoteDetailProps = {
   setSelectedNoteId: (id: string | null) => void;
 };
 export type User = {
-  name: string;
-  password?: string;
+  id: string;
+  name?: string;
+  email: string;
 };
+
 export type AuthContextType = {
   user: User | null;
-  signin: (newUser: User, callback: VoidFunction) => void;
-  signout: VoidFunction;
+  signin: (
+    email: string,
+    password: string,
+    callback: VoidFunction
+  ) => Promise<void>;
+  signout: () => Promise<void>;
+  signup: (
+    email: string,
+    password: string,
+    callback: VoidFunction
+  ) => Promise<void>;
 };

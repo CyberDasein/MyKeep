@@ -5,41 +5,60 @@ import {
   deleteDoc,
   doc,
   updateDoc,
+  query,
+  orderBy,
+  addDoc,
+  getDoc,
 } from "firebase/firestore";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { db } from "../../firebase";
 import { NoteType } from "../types";
-
-const notesRef = collection(db, "notes");
+import { useAuth } from "../context/AuthProvider";
 
 // Получение всех заметок
 export function useNotes() {
+  const { user } = useAuth();
+
   return useQuery<NoteType[], Error>({
-    queryKey: ["notes"],
+    queryKey: ["notes", user?.id],
     queryFn: async () => {
-      const snapshot = await getDocs(notesRef);
-      return snapshot.docs.map((doc) => {
-        const data = doc.data() as Omit<NoteType, "id">; // Исключаем id из типа
-        return { id: doc.id, ...data }; // Теперь id добавляется без конфликта
-      });
+      if (!user) throw new Error("Пользователь не авторизован");
+
+      const notesRef = collection(db, "users", user.id, "notes");
+      const q = query(notesRef, orderBy("order"));
+      const snapshot = await getDocs(q);
+
+      return snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...(doc.data() as Omit<NoteType, "id">),
+      }));
     },
+    enabled: !!user, // Запрос выполняется только если пользователь залогинен
   });
 }
 
 export function useUpdateNote() {
   const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (updatedNote: NoteType) => {
-      try {
-        const noteRef = doc(db, "notes", updatedNote.id);
-        await updateDoc(noteRef, { ...updatedNote });
-      } catch (error) {
-        console.error("Ошибка при обновлении заметки:", error);
-        throw error;
-      }
+  const { user } = useAuth();
+
+  return useMutation<void, Error, NoteType>({
+    mutationFn: async (updatedNote) => {
+      if (!user || !user.id) throw new Error("Пользователь не авторизован");
+      if (!updatedNote.id) throw new Error("ID заметки не указан");
+
+      const noteRef = doc(db, "users", user.id, "notes", updatedNote.id);
+      await updateDoc(noteRef, {
+        title: updatedNote.title,
+        content: updatedNote.content,
+        order: updatedNote.order,
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notes"] });
+    },
+    onError: (error) => {
+      console.error("Ошибка при обновлении заметки:", error);
+      throw error;
     },
   });
 }
@@ -47,30 +66,35 @@ export function useUpdateNote() {
 // Хук для удаления заметки
 export function useDeleteNote() {
   const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (id: string) => {
-      try {
-        await deleteDoc(doc(db, "notes", id));
-      } catch (error) {
-        console.error("Ошибка при удалении заметки:", error);
-      }
+  const { user } = useAuth();
+
+  return useMutation<void, Error, string>({
+    mutationFn: async (noteId) => {
+      if (!user) throw new Error("Пользователь не авторизован");
+      if (!noteId) throw new Error("ID заметки не указан");
+
+      const noteRef = doc(db, "users", user.id, "notes", noteId);
+      await deleteDoc(noteRef);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notes"] });
     },
+    onError: (error) => {
+      console.error("Ошибка при удалении заметки:", error);
+      throw error;
+    },
   });
 }
 
-// Добавление заметки
 export function useAddNote() {
   const queryClient = useQueryClient();
-  return useMutation<void, Error, NoteType>({
+  const { user } = useAuth();
+
+  return useMutation<void, Error, Omit<NoteType, "id">>({
     mutationFn: async (newNote) => {
-      try {
-        await setDoc(doc(db, "notes", newNote.id), newNote);
-      } catch (error) {
-        console.error("Ошибка при добавлении заметки:", error);
-      }
+      if (!user) throw new Error("Пользователь не авторизован");
+
+      await setDoc(doc(db, "users", user.id, "notes", newNote.id), newNote);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notes"] });

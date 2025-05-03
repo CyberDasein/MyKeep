@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Input, Button, Text } from "@mantine/core";
+import { Input, Button, Text, Title } from "@mantine/core";
 import { useAuth } from "../context/AuthProvider";
 import { useNavigate, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 export const Login = () => {
   const auth = useAuth();
@@ -12,11 +13,12 @@ export const Login = () => {
 
   const [formData, setFormData] = useState({
     password: "",
-    name: "alexey",
+    email: "",
   });
 
+  const [authErrorText, setAuthErrorText] = useState("");
   const [errors, setErrors] = useState({
-    name: "",
+    email: "",
     password: "",
   });
 
@@ -27,8 +29,8 @@ export const Login = () => {
 
   const validate = () => {
     const newErrors: any = {};
-    if (!formData.name.trim()) {
-      newErrors.name = "Имя обязательно для заполнения";
+    if (!formData.email.trim()) {
+      newErrors.email = "Имя обязательно для заполнения";
     }
     if (!formData.password.trim()) {
       newErrors.password = "Пароль обязателен для заполнения";
@@ -36,40 +38,65 @@ export const Login = () => {
     return newErrors;
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const newErrors = validate();
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
     } else {
-      auth.signin(formData, () => {
-        navigate(from);
-      });
+      try {
+        await auth.signin(formData.email, formData.password, () => {
+          navigate(from);
+        });
+      } catch (error) {
+        setAuthErrorText("Ошибка входа");
+      }
     }
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <Input
-        type="text"
-        name="name"
-        placeholder="введите имя"
-        value={formData.name}
-        onChange={handleChange}
-        error={errors.name}
-      />
-      {errors.name && <Text>{errors.name}</Text>}
+    <>
+      <Title mb="md" size="h1">
+        Вход
+      </Title>
+      {authErrorText && <Text>{authErrorText}</Text>}
+      <form
+        style={{ maxWidth: "300px", margin: "auto" }}
+        onSubmit={handleSubmit}
+      >
+        <Input
+          mb="xs"
+          type="email"
+          name="email"
+          placeholder="введите email"
+          value={formData.email}
+          onChange={handleChange}
+          error={errors.email}
+        />
+        {errors.email && <Text mb="xs">{errors.email}</Text>}
 
-      <Input
-        type="password"
-        name="password"
-        value={formData.password}
-        onChange={handleChange}
-        error={errors.password}
-      />
-      {errors.password && <Text>{errors.password}</Text>}
+        <Input
+          mb="xs"
+          type="password"
+          name="password"
+          placeholder="введите пароль"
+          value={formData.password}
+          onChange={handleChange}
+          error={errors.password}
+        />
+        {errors.password && <Text>{errors.password}</Text>}
 
-      <Button type="submit">Войти</Button>
-    </form>
+        <Button mt="lg" type="submit">
+          Войти
+        </Button>
+      </form>
+
+      <Link
+        style={{ display: "block", marginTop: "1rem", color: "blue" }}
+        to="/register"
+      >
+        Зарегистрироваться
+      </Link>
+    </>
   );
 };

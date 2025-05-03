@@ -1,17 +1,12 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { v4 as uuidv4 } from "uuid";
-import useLocalStorage from "../hooks/useLocalStorage";
 import Sidebar from "../components/Sidebar";
 import NoteDetail from "../components/NoteDetail";
-import { AppShell, Text, Button, SimpleGrid, Card } from "@mantine/core";
-import { NoteType } from "../types";
+import { AppShell, Text, Button, Card } from "@mantine/core";
 import { Header } from "../components/Header";
-import {
-  useDeleteNote,
-  useNotes,
-  useUpdateNote,
-} from "../hooks/firebaseHooks";
+import { useDeleteNote, useNotes, useUpdateNote } from "../hooks/firebaseHooks";
+import AddNoteArea from "../components/AddNoteArea";
+import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 
 export default function Notes() {
   const navigate = useNavigate();
@@ -40,6 +35,18 @@ export default function Notes() {
     setSelectedNoteId(null);
   };
 
+   const handleDragEnd = (result: any) => {
+     if (!result.destination || !notes) return;
+
+     const [reorderedItem] = notes.splice(result.source.index, 1);
+     notes.splice(result.destination.index, 0, reorderedItem);
+
+     // Обновляем порядок в Firebase
+     notes.forEach((note, index) => {
+       updateNote({ ...note, order: index });
+     });
+   };
+
   return (
     <AppShell
       header={{ height: 60 }}
@@ -64,6 +71,8 @@ export default function Notes() {
       </AppShell.Navbar>
 
       <AppShell.Main>
+        <AddNoteArea />
+
         {selectedNote ? (
           <NoteDetail
             note={selectedNote}
@@ -72,37 +81,71 @@ export default function Notes() {
             setSelectedNoteId={setSelectedNoteId}
           />
         ) : (
-          <SimpleGrid cols={3} spacing="md">
-            {isLoading ? (
-              <span>Загрузка заметок...</span>
-            ) : (
-              notes &&
-              notes.map((note) => (
-                <Card
-                  key={note.id}
-                  shadow="sm"
-                  padding="lg"
-                  radius="md"
-                  withBorder
+          <DragDropContext onDragEnd={handleDragEnd}>
+            <Droppable
+              isDropDisabled={false}
+              isCombineEnabled={false}
+              ignoreContainerClipping={false}
+              droppableId="notes"
+              direction="horizontal"
+            >
+              {(provided) => (
+                <div
+                  {...provided.droppableProps}
+                  ref={provided.innerRef}
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns:
+                      "repeat(auto-fill, minmax(250px, 1fr))",
+                    gap: "1rem",
+                  }}
                 >
-                  <Text fw={500} truncate>
-                    {note.title}
-                  </Text>
-                  <Text size="sm" lineClamp={2}>
-                    {note.content}
-                  </Text>
-                  <Button
-                    mt="md"
-                    fullWidth
-                    variant="light"
-                    onClick={() => navigate(`#${note.id}`)}
-                  >
-                    Открыть
-                  </Button>
-                </Card>
-              ))
-            )}
-          </SimpleGrid>
+                  {notes &&
+                    notes.map((note, index) => (
+                      <Draggable
+                        key={note.id}
+                        draggableId={note.id}
+                        index={index}
+                      >
+                        {(provided) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}
+                            style={{
+                              ...provided.draggableProps.style,
+                            }}
+                          >
+                            <Card
+                              shadow="sm"
+                              padding="lg"
+                              radius="md"
+                              withBorder
+                            >
+                              <Text fw={500} truncate>
+                                {note.title}
+                              </Text>
+                              <Text size="sm" lineClamp={2}>
+                                {note.content}
+                              </Text>
+                              <Button
+                                mt="md"
+                                fullWidth
+                                variant="light"
+                                onClick={() => navigate(`#${note.id}`)}
+                              >
+                                Открыть
+                              </Button>
+                            </Card>
+                          </div>
+                        )}
+                      </Draggable>
+                    ))}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          </DragDropContext>
         )}
       </AppShell.Main>
     </AppShell>

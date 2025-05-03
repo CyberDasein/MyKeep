@@ -18,7 +18,7 @@ export function Header() {
         <Group>
           {auth.user && (
             <>
-              <span className="font-bold">{auth.user.name}</span>
+              <span className="font-bold">{auth.user.email}</span>
               <a href="#" onClick={logout} className="hover:text-[#ff9800]">
                 Logout
               </a>
