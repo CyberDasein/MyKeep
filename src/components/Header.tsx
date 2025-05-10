@@ -1,9 +1,16 @@
-import { Group, Text, Image } from "@mantine/core";
-import logo from "../assets/react.svg";
+import { Group, Text, Burger } from "@mantine/core";
+import logo from "../assets/logo.png";
 import { useAuth } from "../context/AuthProvider";
 import { Link } from "react-router-dom";
+import { useMediaQuery } from "@mantine/hooks";
 
-export function Header() {
+interface HeaderProps {
+  opened: boolean;
+  toggle: () => void;
+}
+
+export function Header({ opened, toggle }: HeaderProps) {
+  const isMobile = useMediaQuery(`(max-width: 768px)`);
   const auth = useAuth();
   const logout = () => {
     auth.signout();
@@ -12,21 +19,34 @@ export function Header() {
     <>
       <Group justify="space-between" px="md" style={{ height: "100%" }}>
         <Group>
-          <Image src={logo} width={50} height={50} alt="Логотип" />
+          {isMobile && (
+            <Burger
+              opened={opened}
+              onClick={toggle}
+              size="sm"
+              color="gray"
+              mr="0"
+            />
+          )}
+          <img src={logo} width={40} height={40} alt="Логотип" />
           <Text size="lg">Мои заметки</Text>
         </Group>
+
         <Group>
           {auth.user && (
             <>
-              <span className="font-bold">{auth.user.email}</span>
-              <a href="#" onClick={logout} className="hover:text-[#ff9800]">
-                Logout
+              {!isMobile && (
+                <span className="font-bold">{auth.user.email}</span>
+              )}
+              <a href="#" onClick={logout}>
+                <Text c="red">Logout</Text>
               </a>
             </>
           )}
           {!auth.user && (
-            <Link to="/login" className="hover:text-[#ff9800]">
-              Login
+            <Link to="/login">
+              {" "}
+              <Text c="blue">Login</Text>
             </Link>
           )}
         </Group>

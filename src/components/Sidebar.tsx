@@ -1,4 +1,3 @@
-import { useMemo } from "react";
 import {
   NavLink,
   TextInput,
@@ -9,7 +8,6 @@ import {
   Title,
 } from "@mantine/core";
 import { NoteType } from "../types";
-
 
 type SidebarProps = {
   notes: NoteType[] | undefined;
@@ -27,7 +25,6 @@ export default function Sidebar({
   setSearchQuery,
   selectedNote,
 }: SidebarProps) {
-
   return (
     <Stack p="md">
       <TextInput

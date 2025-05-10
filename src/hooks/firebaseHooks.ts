@@ -7,8 +7,6 @@ import {
   updateDoc,
   query,
   orderBy,
-  addDoc,
-  getDoc,
 } from "firebase/firestore";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { db } from "../../firebase";
@@ -90,7 +88,7 @@ export function useAddNote() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
-  return useMutation<void, Error, Omit<NoteType, "id">>({
+  return useMutation<void, Error, NoteType>({
     mutationFn: async (newNote) => {
       if (!user) throw new Error("Пользователь не авторизован");
 

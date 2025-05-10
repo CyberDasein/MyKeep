@@ -1,5 +1,13 @@
 import "easymde/dist/easymde.min.css";
-import { Button, Group, Card, Modal, Textarea, TextInput } from "@mantine/core";
+import {
+  Button,
+  Group,
+  Card,
+  Modal,
+  Textarea,
+  TextInput,
+  Text,
+} from "@mantine/core";
 import VoiceInput from "./VoiceInput";
 import { useDisclosure } from "@mantine/hooks";
 import { useNavigate } from "react-router-dom";
@@ -35,10 +43,11 @@ export default function NoteDetail({
 
   return (
     <Modal opened={opened} onClose={closeHandler} withCloseButton={true}>
-      <Card>
+      <Card p={"xs"}>
+        <Text size="sm">Название заметки</Text>
         <TextInput
           size="lg"
-          variant="unstyled"
+          variant="filled"
           mb="md"
           value={localNote.title}
           placeholder="Название"
@@ -47,7 +56,7 @@ export default function NoteDetail({
         <Textarea
           mb="xl"
           autosize
-          minRows={5}
+          minRows={7}
           value={localNote.content}
           placeholder="Введите текст"
           size="md"

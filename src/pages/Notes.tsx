@@ -2,11 +2,12 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import Sidebar from "../components/Sidebar";
 import NoteDetail from "../components/NoteDetail";
-import { AppShell, Text, Button, Card } from "@mantine/core";
+import { AppShell, Text, Button, Card, Transition } from "@mantine/core";
 import { Header } from "../components/Header";
 import { useDeleteNote, useNotes, useUpdateNote } from "../hooks/firebaseHooks";
 import AddNoteArea from "../components/AddNoteArea";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 
 export default function Notes() {
   const navigate = useNavigate();
@@ -18,7 +19,7 @@ export default function Notes() {
     }
   }, [location.hash]);
 
-  const { data: notes, isLoading, error } = useNotes();
+  const { data: notes } = useNotes();
   const { mutate: updateNote } = useUpdateNote();
   const { mutate: deleteNote } = useDeleteNote();
 
@@ -35,41 +36,56 @@ export default function Notes() {
     setSelectedNoteId(null);
   };
 
-   const handleDragEnd = (result: any) => {
-     if (!result.destination || !notes) return;
+  const [opened, { toggle }] = useDisclosure(false);
+  const isMobile = useMediaQuery(`(max-width: 768px)`);
 
-     const [reorderedItem] = notes.splice(result.source.index, 1);
-     notes.splice(result.destination.index, 0, reorderedItem);
+  const handleDragEnd = (result: any) => {
+    if (!result.destination || !notes) return;
 
-     // Обновляем порядок в Firebase
-     notes.forEach((note, index) => {
-       updateNote({ ...note, order: index });
-     });
-   };
+    const [reorderedItem] = notes.splice(result.source.index, 1);
+    notes.splice(result.destination.index, 0, reorderedItem);
+
+    // Обновляем порядок в Firebase
+    notes.forEach((note, index) => {
+      updateNote({ ...note, order: index });
+    });
+  };
 
   return (
     <AppShell
       header={{ height: 60 }}
       navbar={{
-        width: 300,
+        width: isMobile ? "100%" : 300,
         breakpoint: "sm",
+        collapsed: { desktop: false, mobile: !opened },
       }}
-      padding="md"
     >
       <AppShell.Header>
-        <Header />
+        <Header opened={opened} toggle={toggle} />
       </AppShell.Header>
-      <AppShell.Navbar>
-        <Sidebar
-          notes={filteredNotes}
-          onSelect={setSelectedNoteId}
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          setNotes={useNotes}
-          selectedNote={selectedNote}
-        />
-      </AppShell.Navbar>
-
+      <Transition
+        mounted={opened || !isMobile}
+        transition="slide-left"
+        duration={200}
+        timingFunction="ease"
+      >
+        {(styles) => (
+          <AppShell.Navbar
+            style={{
+              ...styles,
+            }}
+          >
+            <Sidebar
+              notes={filteredNotes}
+              onSelect={setSelectedNoteId}
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              setNotes={useNotes}
+              selectedNote={selectedNote}
+            />
+          </AppShell.Navbar>
+        )}
+      </Transition>
       <AppShell.Main>
         <AddNoteArea />
 
