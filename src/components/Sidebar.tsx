@@ -41,12 +41,13 @@ export default function Sidebar({
         {notes && notes.length > 0 ? (
           notes.map((note) => (
             <NavLink
-              color="lime.4"
+              color="blue.4"
               key={note.id}
               onClick={() => onSelect(note.id)}
               active={selectedNote && selectedNote.id === note.id}
               variant="subtle"
               label={<Text lineClamp={1}>{note.title}</Text>}
+              defaultOpened={true}
             >
               <Text lineClamp={1}>{note.content}</Text>
             </NavLink>

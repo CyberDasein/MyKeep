@@ -8,6 +8,7 @@ import { useDeleteNote, useNotes, useUpdateNote } from "../hooks/firebaseHooks";
 import AddNoteArea from "../components/AddNoteArea";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { useDisclosure, useMediaQuery } from "@mantine/hooks";
+import QuickAdd from "../components/QuickAdd";
 
 export default function Notes() {
   const navigate = useNavigate();
@@ -163,6 +164,8 @@ export default function Notes() {
             </Droppable>
           </DragDropContext>
         )}
+
+        <QuickAdd onSelect={setSelectedNoteId} />
       </AppShell.Main>
     </AppShell>
   );

@@ -46,7 +46,7 @@ export default function NoteDetail({
       <Card p={"xs"}>
         <Text size="sm">Название заметки</Text>
         <TextInput
-          size="lg"
+          size="md"
           variant="filled"
           mb="md"
           value={localNote.title}
@@ -58,7 +58,7 @@ export default function NoteDetail({
           autosize
           minRows={7}
           value={localNote.content}
-          placeholder="Введите текст"
+          placeholder="Введите текст или нажмите на Запись"
           size="md"
           onChange={(event) => handleEdit("content", event.currentTarget.value)}
         />
